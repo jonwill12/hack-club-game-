@@ -1,8 +1,7 @@
 Arena Assault
 A top-down shooter where you fight waves of enemies in an arena and spend your earnings in a shop to upgrade your character.
 
-🎮 Play the Demo
-Coming soon
+
 
 How to Play
 
