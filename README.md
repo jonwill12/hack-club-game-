@@ -19,7 +19,6 @@ DamageDeal more damage per shot
 
 Enemies
 EnemyDescription 🔴 Circle a basic enemy that chases you down
-More enemy types coming soon...
 
 Built With
 raylib
