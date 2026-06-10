@@ -25,3 +25,4 @@ raylib
 
 Credits
 Built for Hack Club Stardance.
+And ChatGPT for the read me 
