@@ -26,20 +26,20 @@ enum GameState
 
 int main()
 {
-InitWindow(800, 450, "Shooter With Shop");
-SetTargetFPS(60);
-SetWindowState(FLAG_FULLSCREEN_MODE);
+    int screenWidth = GetMonitorWidth(0);
+    int screenHeight = GetMonitorHeight(0);
 
-int screenWidth = GetScreenWidth();
-int screenHeight = GetScreenHeight();
+    InitWindow(screenWidth, screenHeight, "Shooter With Shop");
+    SetTargetFPS(60);
 
     GameState gameState = MENU;
+
     // ================= VARIABLES =================
-    //this is for a variable 
     auto centerX = [&](float width)
     {
-    return (screenWidth - width) / 2.0f;
+        return (screenWidth - width) / 2.0f;
     };
+
     int currentLevel = 1;
     int maxUnlockedLevel = 1;
     int enemiesToKill = 10;
@@ -51,12 +51,12 @@ int screenHeight = GetScreenHeight();
     int damage = 1;
     float fireCooldown = 0.3f;
     float fireTimer = 0.0f;
-    float spawnTimer = 0.0f; 
+    float spawnTimer = 0.0f;
     int healthUpgradeCost = 50;
     int damageUpgradeCost = 50;
     int fireRateUpgradeCost = 75;
 
-    Vector2 playerPosition = {400, 225};
+    Vector2 playerPosition = { screenWidth / 5.0f, screenHeight / 5.0f };
     float bodySize = 40.0f;
     float gunWidth = 40.0f;
     float gunHeight = 10.0f;
@@ -79,71 +79,121 @@ int screenHeight = GetScreenHeight();
         ClearBackground(BLACK);
 
        
-        if (gameState == MENU)
+if (gameState == MENU)
+{
+    const float buttonWidth = 200;
+    const float buttonHeight = 40;
+    const float spacing = 20;
+
+    // Center the title
+    const char* title = "LEVEL SELECT";
+    int titleSize = 40;
+
+    DrawText(
+        title,
+        (screenWidth - MeasureText(title, titleSize)) / 2,
+        screenHeight / 6,
+        titleSize,
+        WHITE
+    );
+
+    // Calculate where the buttons should start
+    float totalHeight = 1 * buttonHeight + -11 * spacing;
+    float startY = (screenHeight - totalHeight) / 2.0f; 
+
+    for (int i = 1; i <= 5; i++)
+    {
+        Rectangle levelButton =
         {
-            DrawText("LEVEL SELECT", 260, 80, 40, WHITE);
+            centerX(buttonWidth) + 60,
+            startY + (i - 1) * (buttonHeight + spacing),
+            buttonWidth,
+            buttonHeight
+        };
 
-            for (int i = 1; i <= 5; i++)
-            {
-                Rectangle levelButton = {
-            (float)centerX(200),
-            (float)(150 + i * 60),
-             200,
-            40
-            };
+        if (i <= maxUnlockedLevel)
+        {
+            DrawRectangleRec(levelButton, GREEN);
 
-                if (i <= maxUnlockedLevel)
-                {
-                    DrawRectangleRec(levelButton, GREEN);
-                    DrawText(TextFormat("LEVEL %d", i),
-                             levelButton.x + 40,
-                             levelButton.y + 10,
-                             20, BLACK);
+            const char* text = TextFormat("LEVEL %d", i);
+            int textWidth = MeasureText(text, 20);
 
-                    if (CheckCollisionPointRec(GetMousePosition(), levelButton) &&
-                        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-                    {
-                        currentLevel = i;
-                        enemiesKilled = 0;
-                        enemiesSpawned = 0;
-                        int level = currentLevel;
-                        if (level > 4) level = 4;  // keep level 5 from scaling further
-                        enemiesToKill = 5 + (level - 1) * 3;
-                        enemies.clear();
-                        bullets.clear();
-                        health = maxHealth;
-                        gameState = PLAYING;
-                    }
-                }
-                else
-                {
-                    DrawRectangleRec(levelButton, DARKGRAY);
-                    DrawText("LOCKED",
-                             levelButton.x + 60,
-                             levelButton.y + 10,
-                             20, BLACK);
-                }
-            }
+            DrawText(
+                text,
+                levelButton.x + (buttonWidth - textWidth) / 2,
+                levelButton.y + 10,
+                20,
+                BLACK
+            );
 
-            Rectangle shopButton = {
-            (float)centerX(200),
-            380,
-            200,
-            40
-            };
-
-            DrawRectangleRec(shopButton, BLUE);
-            DrawText("SHOP", shopButton.x + 70, shopButton.y + 10, 20, WHITE);
-
-            if (CheckCollisionPointRec(GetMousePosition(), shopButton) &&
+            if (CheckCollisionPointRec(GetMousePosition(), levelButton) &&
                 IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-                gameState = SHOP;
+            {
+                currentLevel = i;
+                enemiesKilled = 0;
+                enemiesSpawned = 0;
 
-            DrawText(TextFormat("Money: %d", money), 20, 20, 20, YELLOW);
-            
-            EndDrawing();
-            continue;
+                int level = currentLevel;
+                if (level > 4) level = 4;
+
+                enemiesToKill = 5 + (level - 1) * 3;
+
+                enemies.clear();
+                bullets.clear();
+                health = maxHealth;
+
+                gameState = PLAYING;
+            }
         }
+        else
+        {
+            DrawRectangleRec(levelButton, DARKGRAY);
+
+            const char* text = "LOCKED";
+            int textWidth = MeasureText(text, 20);
+
+            DrawText(
+                text,
+                levelButton.x + (buttonWidth - textWidth) / 2,
+                levelButton.y + 10,
+                20,
+                BLACK
+            );
+        }
+    }
+
+    Rectangle shopButton =
+    {
+        centerX(buttonWidth) + 60,
+        startY + 5 * (buttonHeight + spacing) + 20,
+        buttonWidth,
+        buttonHeight
+    };
+
+    DrawRectangleRec(shopButton, BLUE);
+
+    const char* shopText = "SHOP";
+    int shopWidth = MeasureText(shopText, 20);
+
+    DrawText(
+        shopText,
+        shopButton.x + (buttonWidth - shopWidth) / 2,
+        shopButton.y + 10,
+        20,
+        WHITE
+    );
+
+    if (CheckCollisionPointRec(GetMousePosition(), shopButton) &&
+        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        gameState = SHOP;
+    }
+
+    DrawText(TextFormat("Money: %d", money), 20, 40, 20, YELLOW);
+
+    EndDrawing();
+    continue;
+}
 
             // ================= SHOP =================
             if (gameState == SHOP)
@@ -153,18 +203,16 @@ int screenHeight = GetScreenHeight();
                 
 {
     DrawText("SHOP", 330, 60, 40, WHITE);
-    DrawText(TextFormat("Money: %d", money), 20, 20, 20, YELLOW);
     DrawText(TextFormat("HP: %d / %d", health, maxHealth), 20, 80, 20, WHITE);
     DrawText(TextFormat("DMG: %d", damage), 20, 100, 20, WHITE);
     DrawText(TextFormat("FIRE: %.2f", fireCooldown), 20, 120, 20, WHITE);
-    DrawText(TextFormat("MONEY: %d", money), 20, 140, 20, YELLOW);
     float bw = 300;
     float bh = 40;
 
-    Rectangle healthButton = { centerX(bw), 150, bw, bh };
-    Rectangle damageButton = { centerX(bw), 220, bw, bh };
-    Rectangle fireButton   = { centerX(bw), 290, bw, bh };
-    Rectangle backButton   = { centerX(bw), 360, bw, bh };
+    Rectangle healthButton = { centerX(bw) + 50, 150, bw, bh };
+    Rectangle damageButton = { centerX(bw) + 50, 220, bw, bh };
+    Rectangle fireButton   = { centerX(bw) + 50, 290, bw, bh };
+    Rectangle backButton   = { centerX(bw) + 50, 360, bw, bh };
 
     DrawRectangleRec(healthButton, GREEN);
     DrawRectangleRec(damageButton, ORANGE);
@@ -172,13 +220,13 @@ int screenHeight = GetScreenHeight();
     DrawRectangleRec(backButton, DARKGRAY);
 
     DrawText(TextFormat("Health +20 - %d", healthUpgradeCost),
-             healthButton.x + 20, healthButton.y + 10, 20, BLACK);
+             healthButton.x + 110, healthButton.y + 10, 20, BLACK);
 
     DrawText(TextFormat("+1 Damage - %d", damageUpgradeCost),
-             damageButton.x + 20, damageButton.y + 10, 20, BLACK);
+             damageButton.x + 110, damageButton.y + 10, 20, BLACK);
 
     DrawText(TextFormat("+Fire Rate - %d", fireRateUpgradeCost),
-             fireButton.x + 20, fireButton.y + 10, 20, WHITE);
+             fireButton.x + 110, fireButton.y + 10, 20, WHITE);
 
     DrawText("BACK", backButton.x + 120, backButton.y + 10, 20, WHITE);
 
@@ -447,7 +495,6 @@ if (spawnTimer >= 1.0f)
         }
 
         // ================= DRAW boss =================
-
         auto DrawBoss = [](Vector2 pos)
         {
             DrawRectangle(pos.x + 30, pos.y + 90, 20, 30, PURPLE);
@@ -462,19 +509,16 @@ if (spawnTimer >= 1.0f)
                          {pos.x + 80, pos.y + 30},
                          SKYBLUE);
 
-            DrawRectangle(pos.x, pos.y + 40, 20, 50, PURPLE);
-            DrawRectangle(pos.x + 100, pos.y + 40, 20, 50, PURPLE);
+           DrawRectangle(pos.x + 45, pos.y + 15, 10,50, PURPLE); //y x z x= how long not pos //y x z x= how long not pos
+           DrawRectangle(pos.x + 65, pos.y + 15, 10, 50, PURPLE);
 
-            DrawCircle(pos.x + 50, pos.y + 20, 3, RED);
-            DrawRectangle(pos.x + 50, pos.y + 20, 3, 3, PURPLE);
-            DrawCircle(pos.x + 70, pos.y + 20, 3, RED);
-            DrawRectangle(pos.x + 70, pos.y + 20, 3, 3, PURPLE);
-
+            
+           DrawCircle(pos.x + 70, pos.y + 20, 3, RED);
+           DrawCircle(pos.x + 50, pos.y + 20, 3, RED); 
+            
+            
+            
         };
-
-        Vector2 bossPos = {500, 250};
-
-        DrawBoss(bossPos);
 
         DrawRectangle(playerPosition.x - bodySize/2,
                   playerPosition.y - bodySize/2,
